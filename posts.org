@@ -342,8 +342,12 @@ asyncio.run(main())
 
 Você pode conferir o código com algumas adições no [[https://github.com/ratsclub/nuke][Github]].
 
-* TODO Utilizando ox-hugo com o GitHub Pages
+* TODO Utilizando ox-hugo com o GitHub Pages :emacs:org:
 :PROPERTIES:
 :EXPORT_FILE_NAME: ox-hugo-github-pages
-:EXPORT_DATE: 2020-08-01
+:EXPORT_DATE: 2020-08-04
 :END:
+
+Sou um utilizador assíduo de [[https://orgmode.org/][org-mode]] e a única coisa que me faltava era uma forma fácil de publicar um blog pessoal e também contribuir com outros blogs sem que tenha que deixar de utilizá-lo.
+
+Foi pesquisando por uma solução de blogging com org-mode que descobri o [[https://ox-hugo.scripter.co/][ox-hugo]], um /backend/ do exportador do Org. Ele faz o trabalho sujo de converter um arquivo /.org/ para um Markdown compatível com o [[https://gohugo.io/][Hugo]].
