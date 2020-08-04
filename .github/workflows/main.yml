@@ -30,7 +30,7 @@ jobs:
         hugo-version: 'latest'
 
     - name: Build
-      run: hugo --minify --theme=archie
+      run: hugo --minify
     
     - name: Deploy
       uses: peaceiris/actions-gh-pages@v3.7.0-6
