@@ -1,0 +1,53 @@
+baseURL = "https://ratsclub.github.io/"
+ltanguageCode = "pt-br"
+defaultContentLanguage = "pt-br"
+title = "ratsclub"
+theme = "terminal"
+paginate = 5
+
+[params]
+  contentTypeName = "posts"
+
+  # ["orange", "blue", "red", "green", "pink"]
+  themeColor = "red"
+
+  # if you set this to 0, only submenu trigger will be visible
+  showMenuItems = 2
+
+  # set theme to full screen width
+  fullWidthTheme = false
+
+  # center theme with default width
+  centerTheme = true
+
+  # set a custom favicon (default is a `themeColor` square)
+  # favicon = "favicon.ico"
+  showLastUpdated = false
+
+[languages]
+  [languages.pt-br]
+    languageName = "Portugues (Brasil)"
+    title = "ratsclub"
+    subtitle = ""
+    owner = ""
+    keywords = ""
+    copyright = ""
+    menuMore = ""
+    readMore = "ler mais"
+    readOtherPosts = "ler outro post"
+    missingContentMessage = "página não encontrada"
+    missingBackButtonLabel = "voltar para a home"
+
+    [languages.pt-br.params.logo]
+      logoText = "ratsclub"
+      logoHomeLink = "/"
+
+    [languages.pt-br.menu]
+      [[languages.pt-br.menu.main]]
+        identifier = "home"
+        name = "home"
+        url = "/"
+      [[languages.pt-br.menu.main]]
+        identifier = "posts"
+        name = "posts"
+        url = "/posts"

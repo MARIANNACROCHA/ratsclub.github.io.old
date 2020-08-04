@@ -1,0 +1,349 @@
+#+HUGO_BASE_DIR: ./
+* Apagando mensagens do Discord com Python :python:discord:bot:
+:PROPERTIES:
+:EXPORT_FILE_NAME: deletando-mensagens-python
+:EXPORT_DATE: 2020-08-01
+:END:
+
+Não sei vocês, mas eu costumo apagar minhas mensagens com frequência. Sempre sinto certa ansiedade por ter mensagens demais em locais demais. Então para resolver esse problema decidi criar um bot que automatize essa tarefa.
+
+** Requisitos
+- ~Python 3.4 ou superior~
+  - ~requests~
+
+** A Estratégia
+Minha primeira estratégia foi iterar as mensagens de cada canal que participo até chegar na primeira mensagem enviada, assim eu teria certeza que passei por todas minhas mensagens. Não preciso nem dizer que levaria dias para vasculhar servidores muito movimentados. Sendo assim, arrumei outra estratégia.
+
+Parei um pouco para pensar e percebi que a forma mais fácil de pegar mensagens com parâmetros específicos é (pasmem!) utilizando a ferramenta de busca do próprio Discord! Bastou fazer uma busca com meu próprio usuário para descobrir nossa estratégia de busca. Anotemos como é nosso endpoint de busca:
+
+~https://discord.com/api/v6/guilds/{guild_id}/messages/search?author_id={user_id}&max_id={max_id}~
+
+- *guild_id*: o id da guild em que pretendemos realizar a busca;
+- *user_id*: o id do seu usuário.
+- *max_id*: esse id determina a partir de qual id pesquisaremos.
+
+O retorno da API é mais ou menos assim:
+
+#+BEGIN_SRC json
+{
+    "total_results": 1000,
+    "messages": [
+        [
+            {
+                "author": {
+                    "id": "204643170250784768",
+                },
+                "hit": true,
+                "id": "739263229619994695",
+                "type": 0,
+            }
+        ]
+    ]
+}
+#+END_SRC
+
+- *total_results*: determina quantas mensagens o usuário possui em determinada guild;
+- *messages*: é um lista de listas contendo as mensagens que batem com os parâmetros passados, entretanto também possui mensagens que servem para dar contexto aos resultados;
+  - *author*: um objeto com informações gerais do autor da mensagem;
+  - *channel_id*: o id do canal em que a mensagem fora enviada.
+  - *hit*: aqui que fica o pulo do gato, mensagens que possuem o valor de hit como ~true~ terão foco na interface, ou seja, são as mensagens que queremos pegar;
+  - *id*: o id da mensagem;
+  - *type*: determina o [[https://discord.com/developers/docs/resources/channel#message-object-message-types][tipo da mensagem]].
+
+** Reunindo o necessário
+ Agora que sabemos como realizar a busca, precisamos suprir as informações necessárias para tal. O primeiro passo é ler a [[https://discord.com/developers/docs/intro][documentação]] e tentar entender onde requisitar tais informações. Lá podemos ver que precisaremos de três endpoints além da busca.
+
+ - ~GET /api/users/@me~: informações sobre o usuário;
+ - ~GET /api/users/@me/guids~: informações sobre as guilds que o usuário faz parte;
+ - ~DELETE /api/channels/{channel_id}/messages/{message_id}~: realiza a remoção de uma mensagem. Note que as informações necessárias já estão contidas no retorno da busca.
+
+** Mostre-me o código
+
+Nosso primeiro passo será criar uma sessão do requests. Dessa forma poderemos persistir o cabeçalho contendo nosso token:
+
+#+BEGIN_SRC python
+import asyncio
+import requests
+
+URL_BASE = "https://discord.com"
+URL_USERS_ME = f"{URL_BASE}/api/users/@me"
+URL_USERS_ME_GUILDS = f"{URL_BASE}/api/users/@me/guilds"
+URL_SEARCH_MESSAGES = "{}/guilds/{}/messages/search"
+URL_DELETE_MESSAGE = "{}/channels/{}/messages/{}"
+
+
+async def main():
+    # seu token aqui
+    TOKEN = ""
+
+    session = requests.Session()
+    session.headers.update({"Authorization": TOKEN})
+
+asyncio.run(main())
+#+END_SRC
+
+#+RESULTS:
+
+Utilizaremos essa sessão durante todo o programa. Todavia, antes de progredirmos, precisamos ter certeza que possuímos as permissões necessárias. Aqui verificaremos se somos autorizados à realizar requisições com nosso atual token.
+
+#+BEGIN_SRC python
+resp = session.get(URL_USERS_ME)
+if resp.status_code == 403 or resp.status_code == 401:
+    raise Exception("usuário não autorizado. token inválido")
+
+user = resp.json()
+guilds = session.get(URL_USERS_ME_GUILDS).json()
+ #+END_SRC
+
+A partir desse momento já possuímos todos os requisitos para realizar nossa primeira busca. Sendo assim, criaremos uma função para isso:
+
+ #+BEGIN_SRC python
+ async def search_messages(session, guild, user, params={}):
+     user_id = user["id"]
+     guild_id = guild["id"]
+     params = { **params, "author_id": user_id }
+
+     while True:
+         resp = session.get(
+             URL_SEARCH_MESSAGES.format(URL_BASE, guild_id)
+             params=params
+         )
+
+         if resp.status_code == 429:
+            retry_after = resp.json()["retry_after"]
+            await asyncio sleep(retry_after / 1000)
+            continue
+
+        return resp.json()
+ #+END_SRC
+
+Essa função possui um método primitivo para lidar com o [[https://discord.com/developers/docs/topics/rate-limits][rate limit]] da api. Vemos na documentação que recebemos um JSON contendo o tempo que devemos esperar até a próxima requisição, então basta passá-lo para a função [[https://docs.python.org/3/library/asyncio-task.html#asyncio.sleep][sleep]].
+
+Nossa próxima missão será criar uma função que remova uma mensagem. Agora ficou fácil:
+
+#+BEGIN_SRC python
+async def delete_message(session, message):
+    channel_id = message["channel"]
+    message_id = message["id"]
+
+    while True:
+        resp = session.delete(
+            URL_DELETE_MESSAGE
+            .format(URL_BASE, channel_id, message_id)
+        )
+
+        if resp.status_code == 429:
+            retry_after = resp.json()["retry_after"]
+            await asyncio.sleep(retry_after / 1000)
+            continue
+
+        if resp.status_code == 404 or resp.status == 204:
+            return
+#+END_SRC
+
+Até o momento temos tudo o que é necessário para apagar todas nossas mensagens enviadas em guilds. Contudo, ainda podemos melhorar. Atualmente nosso programa busca uma guild e itera suas mensagens, mas de acordo com a documentação do Discord, podemos buscar em diversas guilds ao mesmo tempo, pois o /rate limit/ é individual para cada uma.
+
+O Python introduziu a biblioteca [[https://docs.python.org/3.7/library/asyncio.html][asyncio]] a partir de sua versão 3.4. Podemos utilizar de seus poderes para agilizar nosso processo e para isso criaremos um /worker/ para buscar as mensagens e deletá-las.
+
+#+BEGIN_SRC python
+async def search_messages_worker(
+    session,
+    guild,
+    user,
+    params
+):
+    params = {}
+    chat_id = chat["id"]
+
+    while True:
+        result = await search_messages(session, guild, user, params)
+        total_results = result["total_results"]
+        messages = result["messages"]
+
+        # acabaram as mensagens
+        if total_results == 0:
+            return
+
+        # pegando o id da mensagem mais velha
+        ids = [msg["id"] for msg in messages]
+        max_id = min(sorted(ids, key=int))
+
+        # a proxima busca comecara a partir da mensagem mais antiga
+        params = {**params, "max_id": max_id}
+
+        messages_tasks = [
+            asyncio.create_task(delete_message(session, {
+                "id": msg["id"],
+                "channel": msg["channel_id"]
+            }))
+            for msg in messages
+        ]
+
+        await asyncio.gather(*messages_tasks)
+#+END_SRC
+
+Fizemos bastante coisa nessa função, destrinchemos em pedaços.
+
+Primeiramente em toda iteração do loop verificamos se possuímos mensagens na guild, caso não tenhamos finalizamos o worker.
+
+#+BEGIN_SRC python
+result = await search_messages(session, guild, user, params)
+total_results = result["total_results"]
+messages = result["messages"]
+
+# acabaram as mensagens
+if total_results == 0:
+        return
+#+END_SRC
+
+Após isso nós determinamos qual a mensagem mais antiga para realizar a próxima busca.
+
+#+BEGIN_SRC python
+# pegando o id da mensagem mais velha
+ids = [msg["id"] for msg in messages]
+max_id = min(sorted(ids, key=int))
+
+# a proxima busca comecara a partir da mensagem mais antiga
+params = {**params, "max_id": max_id}
+#+END_SRC
+
+Bom, chegou a hora de utilizar o /asyncio/. Aqui nós criaremos diversas [[https://docs.python.org/3.7/library/asyncio-task.html#asyncio.create_task][tasks]] para apagar todas as mensagens recebidas na nossa busca. A função [[https://docs.python.org/3.7/library/asyncio-task.html#asyncio.gather][gather]] será responsável por receber as /tasks/ e rodá-las de forma concurrente.
+
+#+BEGIN_SRC python
+messages_tasks = [
+    asyncio.create_task(delete_message(session, {
+        "id": msg["id"],
+        "channel": msg["channel_id"]
+    }))
+    for msg in messages
+]
+
+await asyncio.gather(*messages_tasks)
+#+END_SRC
+
+Agora vamos ao script final:
+
+#+BEGIN_SRC python
+import asyncio
+import requests
+
+URL_BASE = "https://discord.com"
+URL_USERS_ME = f"{URL_BASE}/api/users/@me"
+URL_USERS_ME_GUILDS = f"{URL_BASE}/api/users/@me/guilds"
+URL_SEARCH_MESSAGES = "{}/guilds/{}/messages/search"
+URL_DELETE_MESSAGE = "{}/channels/{}/messages/{}"
+
+
+async def search_messages(session, guild, user, params={}):
+    user_id = user["id"]
+    guild_id = guild["id"]
+    params = { **params, "author_id": user_id }
+
+    while True:
+        resp = session.get(
+            URL_SEARCH_MESSAGES.format(URL_BASE, guild_id)
+            params=params
+        )
+
+        if resp.status_code == 429:
+            retry_after = resp.json()["retry_after"]
+            await asyncio sleep(retry_after / 1000)
+            continue
+
+        return resp.json()
+
+
+async def delete_message(
+    session: requests.Session,
+    message: dict,
+):
+    channel_id = message["channel"]
+    message_id = message["id"]
+
+    while True:
+        resp = session.delete(
+            URL_DELETE_MESSAGE
+            .format(URL_BASE, channel_id, message_id)
+        )
+
+        if resp.status_code == 429:
+            retry_after = resp.json()["retry_after"]
+            await asyncio.sleep(retry_after / 1000)
+            continue
+
+        if resp.status_code == 404 or resp.status == 204:
+            return
+
+
+async def search_messages_worker(
+    session,
+    guild,
+    user,
+    params={}
+):
+    params = {}
+    chat_id = chat["id"]
+
+    while True:
+        result = await search_messages(session, guild, user, params)
+        total_results = result["total_results"]
+        messages = result["messages"]
+
+        # acabaram as mensagens
+        if total_results == 0:
+            return
+
+        # pegando o id da mensagem mais velha
+        ids = [msg["id"] for msg in messages]
+        max_id = min(sorted(ids, key=int))
+
+        # a proxima busca comecara a partir da mensagem mais antiga
+        params = {**params, "max_id": max_id}
+
+        messages_tasks = [
+            asyncio.create_task(delete_message(session, {
+                "id": msg["id"],
+                "channel": msg["channel_id"]
+            }))
+            for msg in messages
+        ]
+
+        await asyncio.gather(*messages_tasks)
+
+
+async def main():
+    # seu token aqui
+    TOKEN = ""
+
+    session = requests.Session()
+    session.headers.update({"Authorization": TOKEN})
+
+    resp = session.get(URL_USERS_ME)
+    if resp.status_code == 403 or resp.status_code == 401:
+        raise Exception("usuário não autorizado. token inválido")
+
+    user = resp.json()
+    print(f"logged in as: {}", user["username"])
+    guilds = session.get(URL_USERS_ME_GUILDS).json()
+
+
+    tasks = [
+        asyncio.create_task(
+            search_messages_worker(session, guild, user)
+        )
+        for guild in guilds
+    ]
+
+    await asyncio.gather(*tasks)
+    print("Done!")
+
+asyncio.run(main())
+#+END_SRC
+
+Você pode conferir o código com algumas adições no [[https://github.com/ratsclub/nuke][Github]].
+
+* TODO Utilizando ox-hugo com o GitHub Pages
+:PROPERTIES:
+:EXPORT_FILE_NAME: ox-hugo-github-pages
+:EXPORT_DATE: 2020-08-01
+:END:
