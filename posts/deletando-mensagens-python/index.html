@@ -1,0 +1,249 @@
+<!doctype html><html lang=pt-br><head><title>Apagando mensagens do Discord com Python :: ratsclub</title><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Não sei vocês, mas eu costumo apagar minhas mensagens com frequência. Sempre sinto certa ansiedade por ter mensagens demais em locais demais. Então para resolver esse problema decidi criar um bot que automatize essa tarefa.
+Requisitos  Python 3.4 ou superior  requests    A Estratégia Minha primeira estratégia foi iterar as mensagens de cada canal que participo até chegar na primeira mensagem enviada, assim eu teria certeza que passei por todas minhas mensagens."><meta name=keywords content><meta name=robots content="noodp"><link rel=canonical href=https://ratsclub.github.io/posts/deletando-mensagens-python/><link rel=stylesheet href=https://ratsclub.github.io/assets/style.css><link rel=stylesheet href=https://ratsclub.github.io/assets/red.css><link rel=apple-touch-icon-precomposed sizes=144x144 href=https://ratsclub.github.io/img/apple-touch-icon-144-precomposed.png><link rel="shortcut icon" href=https://ratsclub.github.io/img/favicon/red.png><meta name=twitter:card content="summary"><meta name=twitter:creator content><meta property="og:locale" content="pt-br"><meta property="og:type" content="article"><meta property="og:title" content="Apagando mensagens do Discord com Python :: ratsclub"><meta property="og:description" content="Não sei vocês, mas eu costumo apagar minhas mensagens com frequência. Sempre sinto certa ansiedade por ter mensagens demais em locais demais. Então para resolver esse problema decidi criar um bot que automatize essa tarefa.
+Requisitos  Python 3.4 ou superior  requests    A Estratégia Minha primeira estratégia foi iterar as mensagens de cada canal que participo até chegar na primeira mensagem enviada, assim eu teria certeza que passei por todas minhas mensagens."><meta property="og:url" content="https://ratsclub.github.io/posts/deletando-mensagens-python/"><meta property="og:site_name" content="Apagando mensagens do Discord com Python"><meta property="og:image" content="https://ratsclub.github.io/img/favicon/red.png"><meta property="og:image:width" content="2048"><meta property="og:image:height" content="1024"><meta property="article:published_time" content="2020-08-01 00:00:00 +0000 UTC"></head><body><div class="container center headings--one-size"><header class=header><div class=header__inner><div class=header__logo><a href=/><div class=logo>ratsclub</div></a></div><div class=menu-trigger>menu</div></div><nav class=menu><ul class="menu__inner menu__inner--desktop"><li><a href=/>home</a></li><li><a href=/posts>posts</a></li></ul><ul class="menu__inner menu__inner--mobile"><li><a href=/>home</a></li><li><a href=/posts>posts</a></li></ul></nav></header><div class=content><div class=post><h1 class=post-title><a href=https://ratsclub.github.io/posts/deletando-mensagens-python/>Apagando mensagens do Discord com Python</a></h1><div class=post-meta><span class=post-date>2020-08-01</span></div><span class=post-tags>#<a href=https://ratsclub.github.io/tags/python/>python</a>&nbsp;
+#<a href=https://ratsclub.github.io/tags/discord/>discord</a>&nbsp;
+#<a href=https://ratsclub.github.io/tags/bot/>bot</a>&nbsp;</span><div class=post-content><div><p>Não sei vocês, mas eu costumo apagar minhas mensagens com frequência. Sempre sinto certa ansiedade por ter mensagens demais em locais demais. Então para resolver esse problema decidi criar um bot que automatize essa tarefa.</p><h2 id=requisitos>Requisitos<a href=#requisitos class=hanchor arialabel=Anchor>&#8983;</a></h2><ul><li><code>Python 3.4 ou superior</code><ul><li><code>requests</code></li></ul></li></ul><h2 id=a-estratégia>A Estratégia<a href=#a-estratégia class=hanchor arialabel=Anchor>&#8983;</a></h2><p>Minha primeira estratégia foi iterar as mensagens de cada canal que participo até chegar na primeira mensagem enviada, assim eu teria certeza que passei por todas minhas mensagens. Não preciso nem dizer que levaria dias para vasculhar servidores muito movimentados. Sendo assim, arrumei outra estratégia.</p><p>Parei um pouco para pensar e percebi que a forma mais fácil de pegar mensagens com parâmetros específicos é (pasmem!) utilizando a ferramenta de busca do próprio Discord! Bastou fazer uma busca com meu próprio usuário para descobrir nossa estratégia de busca. Anotemos como é nosso endpoint de busca:</p><p><code>https://discord.com/api/v6/guilds/{guild_id}/messages/search?author_id={user_id}&max_id={max_id}</code></p><ul><li><strong>guild_id</strong>: o id da guild em que pretendemos realizar a busca;</li><li><strong>user_id</strong>: o id do seu usuário.</li><li><strong>max_id</strong>: esse id determina a partir de qual id pesquisaremos.</li></ul><p>O retorno da API é mais ou menos assim:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-json data-lang=json>{
+    <span style=color:#f92672>&#34;total_results&#34;</span>: <span style=color:#ae81ff>1000</span>,
+    <span style=color:#f92672>&#34;messages&#34;</span>: [
+	[
+	    {
+		<span style=color:#f92672>&#34;author&#34;</span>: {
+		    <span style=color:#f92672>&#34;id&#34;</span>: <span style=color:#e6db74>&#34;204643170250784768&#34;</span>,
+		},
+		<span style=color:#f92672>&#34;hit&#34;</span>: <span style=color:#66d9ef>true</span>,
+		<span style=color:#f92672>&#34;id&#34;</span>: <span style=color:#e6db74>&#34;739263229619994695&#34;</span>,
+		<span style=color:#f92672>&#34;type&#34;</span>: <span style=color:#ae81ff>0</span>,
+	    }
+	]
+    ]
+}
+</code></pre></div><ul><li><strong>total_results</strong>: determina quantas mensagens o usuário possui em determinada guild;</li><li><strong>messages</strong>: é um lista de listas contendo as mensagens que batem com os parâmetros passados, entretanto também possui mensagens que servem para dar contexto aos resultados;<ul><li><strong>author</strong>: um objeto com informações gerais do autor da mensagem;</li><li><strong>channel_id</strong>: o id do canal em que a mensagem fora enviada.</li><li><strong>hit</strong>: aqui que fica o pulo do gato, mensagens que possuem o valor de hit como <code>true</code> terão foco na interface, ou seja, são as mensagens que queremos pegar;</li><li><strong>id</strong>: o id da mensagem;</li><li><strong>type</strong>: determina o <a href=https://discord.com/developers/docs/resources/channel#message-object-message-types>tipo da mensagem</a>.</li></ul></li></ul><h2 id=reunindo-o-necessário>Reunindo o necessário<a href=#reunindo-o-necessário class=hanchor arialabel=Anchor>&#8983;</a></h2><p>Agora que sabemos como realizar a busca, precisamos suprir as informações necessárias para tal. O primeiro passo é ler a <a href=https://discord.com/developers/docs/intro>documentação</a> e tentar entender onde requisitar tais informações. Lá podemos ver que precisaremos de três endpoints além da busca.</p><ul><li><code>GET /api/users/@me</code>: informações sobre o usuário;</li><li><code>GET /api/users/@me/guids</code>: informações sobre as guilds que o usuário faz parte;</li><li><code>DELETE /api/channels/{channel_id}/messages/{message_id}</code>: realiza a remoção de uma mensagem. Note que as informações necessárias já estão contidas no retorno da busca.</li></ul><h2 id=mostre-me-o-código>Mostre-me o código<a href=#mostre-me-o-código class=hanchor arialabel=Anchor>&#8983;</a></h2><p>Nosso primeiro passo será criar uma sessão do requests. Dessa forma poderemos persistir o cabeçalho contendo nosso token:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#f92672>import</span> asyncio
+<span style=color:#f92672>import</span> requests
+
+URL_BASE <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;https://discord.com&#34;</span>
+URL_USERS_ME <span style=color:#f92672>=</span> f<span style=color:#e6db74>&#34;{URL_BASE}/api/users/@me&#34;</span>
+URL_USERS_ME_GUILDS <span style=color:#f92672>=</span> f<span style=color:#e6db74>&#34;{URL_BASE}/api/users/@me/guilds&#34;</span>
+URL_SEARCH_MESSAGES <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;{}/guilds/{}/messages/search&#34;</span>
+URL_DELETE_MESSAGE <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;{}/channels/{}/messages/{}&#34;</span>
+
+
+async <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>main</span>():
+    <span style=color:#75715e># seu token aqui</span>
+    TOKEN <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;&#34;</span>
+
+    session <span style=color:#f92672>=</span> requests<span style=color:#f92672>.</span>Session()
+    session<span style=color:#f92672>.</span>headers<span style=color:#f92672>.</span>update({<span style=color:#e6db74>&#34;Authorization&#34;</span>: TOKEN})
+
+asyncio<span style=color:#f92672>.</span>run(main())
+</code></pre></div><p>Utilizaremos essa sessão durante todo o programa. Todavia, antes de progredirmos, precisamos ter certeza que possuímos as permissões necessárias. Aqui verificaremos se somos autorizados à realizar requisições com nosso atual token.</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python>resp <span style=color:#f92672>=</span> session<span style=color:#f92672>.</span>get(URL_USERS_ME)
+<span style=color:#66d9ef>if</span> resp<span style=color:#f92672>.</span>status_code <span style=color:#f92672>==</span> <span style=color:#ae81ff>403</span> <span style=color:#f92672>or</span> resp<span style=color:#f92672>.</span>status_code <span style=color:#f92672>==</span> <span style=color:#ae81ff>401</span>:
+    <span style=color:#66d9ef>raise</span> <span style=color:#a6e22e>Exception</span>(<span style=color:#e6db74>&#34;usuário não autorizado. token inválido&#34;</span>)
+
+user <span style=color:#f92672>=</span> resp<span style=color:#f92672>.</span>json()
+guilds <span style=color:#f92672>=</span> session<span style=color:#f92672>.</span>get(URL_USERS_ME_GUILDS)<span style=color:#f92672>.</span>json()
+</code></pre></div><p>A partir desse momento já possuímos todos os requisitos para realizar nossa primeira busca. Sendo assim, criaremos uma função para isso:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python>async <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>search_messages</span>(session, guild, user, params<span style=color:#f92672>=</span>{}):
+    user_id <span style=color:#f92672>=</span> user[<span style=color:#e6db74>&#34;id&#34;</span>]
+    guild_id <span style=color:#f92672>=</span> guild[<span style=color:#e6db74>&#34;id&#34;</span>]
+    params <span style=color:#f92672>=</span> { <span style=color:#f92672>**</span>params, <span style=color:#e6db74>&#34;author_id&#34;</span>: user_id }
+
+    <span style=color:#66d9ef>while</span> True:
+	resp <span style=color:#f92672>=</span> session<span style=color:#f92672>.</span>get(
+	    URL_SEARCH_MESSAGES<span style=color:#f92672>.</span>format(URL_BASE, guild_id)
+	    params<span style=color:#f92672>=</span>params
+	)
+
+	<span style=color:#66d9ef>if</span> resp<span style=color:#f92672>.</span>status_code <span style=color:#f92672>==</span> <span style=color:#ae81ff>429</span>:
+	   retry_after <span style=color:#f92672>=</span> resp<span style=color:#f92672>.</span>json()[<span style=color:#e6db74>&#34;retry_after&#34;</span>]
+	   await asyncio sleep(retry_after <span style=color:#f92672>/</span> <span style=color:#ae81ff>1000</span>)
+	   <span style=color:#66d9ef>continue</span>
+
+       <span style=color:#66d9ef>return</span> resp<span style=color:#f92672>.</span>json()
+</code></pre></div><p>Essa função possui um método primitivo para lidar com o <a href=https://discord.com/developers/docs/topics/rate-limits>rate limit</a> da api. Vemos na documentação que recebemos um JSON contendo o tempo que devemos esperar até a próxima requisição, então basta passá-lo para a função <a href=https://docs.python.org/3/library/asyncio-task.html#asyncio.sleep>sleep</a>.</p><p>Nossa próxima missão será criar uma função que remova uma mensagem. Agora ficou fácil:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python>async <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>delete_message</span>(session, message):
+    channel_id <span style=color:#f92672>=</span> message[<span style=color:#e6db74>&#34;channel&#34;</span>]
+    message_id <span style=color:#f92672>=</span> message[<span style=color:#e6db74>&#34;id&#34;</span>]
+
+    <span style=color:#66d9ef>while</span> True:
+	resp <span style=color:#f92672>=</span> session<span style=color:#f92672>.</span>delete(
+	    URL_DELETE_MESSAGE
+	    <span style=color:#f92672>.</span>format(URL_BASE, channel_id, message_id)
+	)
+
+	<span style=color:#66d9ef>if</span> resp<span style=color:#f92672>.</span>status_code <span style=color:#f92672>==</span> <span style=color:#ae81ff>429</span>:
+	    retry_after <span style=color:#f92672>=</span> resp<span style=color:#f92672>.</span>json()[<span style=color:#e6db74>&#34;retry_after&#34;</span>]
+	    await asyncio<span style=color:#f92672>.</span>sleep(retry_after <span style=color:#f92672>/</span> <span style=color:#ae81ff>1000</span>)
+	    <span style=color:#66d9ef>continue</span>
+
+	<span style=color:#66d9ef>if</span> resp<span style=color:#f92672>.</span>status_code <span style=color:#f92672>==</span> <span style=color:#ae81ff>404</span> <span style=color:#f92672>or</span> resp<span style=color:#f92672>.</span>status <span style=color:#f92672>==</span> <span style=color:#ae81ff>204</span>:
+	    <span style=color:#66d9ef>return</span>
+</code></pre></div><p>Até o momento temos tudo o que é necessário para apagar todas nossas mensagens enviadas em guilds. Contudo, ainda podemos melhorar. Atualmente nosso programa busca uma guild e itera suas mensagens, mas de acordo com a documentação do Discord, podemos buscar em diversas guilds ao mesmo tempo, pois o <em>rate limit</em> é individual para cada uma.</p><p>O Python introduziu a biblioteca <a href=https://docs.python.org/3.7/library/asyncio.html>asyncio</a> a partir de sua versão 3.4. Podemos utilizar de seus poderes para agilizar nosso processo e para isso criaremos um <em>worker</em> para buscar as mensagens e deletá-las.</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python>async <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>search_messages_worker</span>(
+    session,
+    guild,
+    user,
+    params
+):
+    params <span style=color:#f92672>=</span> {}
+    chat_id <span style=color:#f92672>=</span> chat[<span style=color:#e6db74>&#34;id&#34;</span>]
+
+    <span style=color:#66d9ef>while</span> True:
+	result <span style=color:#f92672>=</span> await search_messages(session, guild, user, params)
+	total_results <span style=color:#f92672>=</span> result[<span style=color:#e6db74>&#34;total_results&#34;</span>]
+	messages <span style=color:#f92672>=</span> result[<span style=color:#e6db74>&#34;messages&#34;</span>]
+
+	<span style=color:#75715e># acabaram as mensagens</span>
+	<span style=color:#66d9ef>if</span> total_results <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>:
+	    <span style=color:#66d9ef>return</span>
+
+	<span style=color:#75715e># pegando o id da mensagem mais velha</span>
+	ids <span style=color:#f92672>=</span> [msg[<span style=color:#e6db74>&#34;id&#34;</span>] <span style=color:#66d9ef>for</span> msg <span style=color:#f92672>in</span> messages]
+	max_id <span style=color:#f92672>=</span> min(sorted(ids, key<span style=color:#f92672>=</span>int))
+
+	<span style=color:#75715e># a proxima busca comecara a partir da mensagem mais antiga</span>
+	params <span style=color:#f92672>=</span> {<span style=color:#f92672>**</span>params, <span style=color:#e6db74>&#34;max_id&#34;</span>: max_id}
+
+	messages_tasks <span style=color:#f92672>=</span> [
+	    asyncio<span style=color:#f92672>.</span>create_task(delete_message(session, {
+		<span style=color:#e6db74>&#34;id&#34;</span>: msg[<span style=color:#e6db74>&#34;id&#34;</span>],
+		<span style=color:#e6db74>&#34;channel&#34;</span>: msg[<span style=color:#e6db74>&#34;channel_id&#34;</span>]
+	    }))
+	    <span style=color:#66d9ef>for</span> msg <span style=color:#f92672>in</span> messages
+	]
+
+	await asyncio<span style=color:#f92672>.</span>gather(<span style=color:#f92672>*</span>messages_tasks)
+</code></pre></div><p>Fizemos bastante coisa nessa função, destrinchemos em pedaços.</p><p>Primeiramente em toda iteração do loop verificamos se possuímos mensagens na guild, caso não tenhamos finalizamos o worker.</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python>result <span style=color:#f92672>=</span> await search_messages(session, guild, user, params)
+total_results <span style=color:#f92672>=</span> result[<span style=color:#e6db74>&#34;total_results&#34;</span>]
+messages <span style=color:#f92672>=</span> result[<span style=color:#e6db74>&#34;messages&#34;</span>]
+
+<span style=color:#75715e># acabaram as mensagens</span>
+<span style=color:#66d9ef>if</span> total_results <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>:
+	<span style=color:#66d9ef>return</span>
+</code></pre></div><p>Após isso nós determinamos qual a mensagem mais antiga para realizar a próxima busca.</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#75715e># pegando o id da mensagem mais velha</span>
+ids <span style=color:#f92672>=</span> [msg[<span style=color:#e6db74>&#34;id&#34;</span>] <span style=color:#66d9ef>for</span> msg <span style=color:#f92672>in</span> messages]
+max_id <span style=color:#f92672>=</span> min(sorted(ids, key<span style=color:#f92672>=</span>int))
+
+<span style=color:#75715e># a proxima busca comecara a partir da mensagem mais antiga</span>
+params <span style=color:#f92672>=</span> {<span style=color:#f92672>**</span>params, <span style=color:#e6db74>&#34;max_id&#34;</span>: max_id}
+</code></pre></div><p>Bom, chegou a hora de utilizar o <em>asyncio</em>. Aqui nós criaremos diversas <a href=https://docs.python.org/3.7/library/asyncio-task.html#asyncio.create%5Ftask>tasks</a> para apagar todas as mensagens recebidas na nossa busca. A função <a href=https://docs.python.org/3.7/library/asyncio-task.html#asyncio.gather>gather</a> será responsável por receber as <em>tasks</em> e rodá-las de forma concurrente.</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python>messages_tasks <span style=color:#f92672>=</span> [
+    asyncio<span style=color:#f92672>.</span>create_task(delete_message(session, {
+	<span style=color:#e6db74>&#34;id&#34;</span>: msg[<span style=color:#e6db74>&#34;id&#34;</span>],
+	<span style=color:#e6db74>&#34;channel&#34;</span>: msg[<span style=color:#e6db74>&#34;channel_id&#34;</span>]
+    }))
+    <span style=color:#66d9ef>for</span> msg <span style=color:#f92672>in</span> messages
+]
+
+await asyncio<span style=color:#f92672>.</span>gather(<span style=color:#f92672>*</span>messages_tasks)
+</code></pre></div><p>Agora vamos ao script final:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#f92672>import</span> asyncio
+<span style=color:#f92672>import</span> requests
+
+URL_BASE <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;https://discord.com&#34;</span>
+URL_USERS_ME <span style=color:#f92672>=</span> f<span style=color:#e6db74>&#34;{URL_BASE}/api/users/@me&#34;</span>
+URL_USERS_ME_GUILDS <span style=color:#f92672>=</span> f<span style=color:#e6db74>&#34;{URL_BASE}/api/users/@me/guilds&#34;</span>
+URL_SEARCH_MESSAGES <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;{}/guilds/{}/messages/search&#34;</span>
+URL_DELETE_MESSAGE <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;{}/channels/{}/messages/{}&#34;</span>
+
+
+async <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>search_messages</span>(session, guild, user, params<span style=color:#f92672>=</span>{}):
+    user_id <span style=color:#f92672>=</span> user[<span style=color:#e6db74>&#34;id&#34;</span>]
+    guild_id <span style=color:#f92672>=</span> guild[<span style=color:#e6db74>&#34;id&#34;</span>]
+    params <span style=color:#f92672>=</span> { <span style=color:#f92672>**</span>params, <span style=color:#e6db74>&#34;author_id&#34;</span>: user_id }
+
+    <span style=color:#66d9ef>while</span> True:
+	resp <span style=color:#f92672>=</span> session<span style=color:#f92672>.</span>get(
+	    URL_SEARCH_MESSAGES<span style=color:#f92672>.</span>format(URL_BASE, guild_id)
+	    params<span style=color:#f92672>=</span>params
+	)
+
+	<span style=color:#66d9ef>if</span> resp<span style=color:#f92672>.</span>status_code <span style=color:#f92672>==</span> <span style=color:#ae81ff>429</span>:
+	    retry_after <span style=color:#f92672>=</span> resp<span style=color:#f92672>.</span>json()[<span style=color:#e6db74>&#34;retry_after&#34;</span>]
+	    await asyncio sleep(retry_after <span style=color:#f92672>/</span> <span style=color:#ae81ff>1000</span>)
+	    <span style=color:#66d9ef>continue</span>
+
+	<span style=color:#66d9ef>return</span> resp<span style=color:#f92672>.</span>json()
+
+
+async <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>delete_message</span>(
+    session: requests<span style=color:#f92672>.</span>Session,
+    message: dict,
+):
+    channel_id <span style=color:#f92672>=</span> message[<span style=color:#e6db74>&#34;channel&#34;</span>]
+    message_id <span style=color:#f92672>=</span> message[<span style=color:#e6db74>&#34;id&#34;</span>]
+
+    <span style=color:#66d9ef>while</span> True:
+	resp <span style=color:#f92672>=</span> session<span style=color:#f92672>.</span>delete(
+	    URL_DELETE_MESSAGE
+	    <span style=color:#f92672>.</span>format(URL_BASE, channel_id, message_id)
+	)
+
+	<span style=color:#66d9ef>if</span> resp<span style=color:#f92672>.</span>status_code <span style=color:#f92672>==</span> <span style=color:#ae81ff>429</span>:
+	    retry_after <span style=color:#f92672>=</span> resp<span style=color:#f92672>.</span>json()[<span style=color:#e6db74>&#34;retry_after&#34;</span>]
+	    await asyncio<span style=color:#f92672>.</span>sleep(retry_after <span style=color:#f92672>/</span> <span style=color:#ae81ff>1000</span>)
+	    <span style=color:#66d9ef>continue</span>
+
+	<span style=color:#66d9ef>if</span> resp<span style=color:#f92672>.</span>status_code <span style=color:#f92672>==</span> <span style=color:#ae81ff>404</span> <span style=color:#f92672>or</span> resp<span style=color:#f92672>.</span>status <span style=color:#f92672>==</span> <span style=color:#ae81ff>204</span>:
+	    <span style=color:#66d9ef>return</span>
+
+
+async <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>search_messages_worker</span>(
+    session,
+    guild,
+    user,
+    params<span style=color:#f92672>=</span>{}
+):
+    params <span style=color:#f92672>=</span> {}
+    chat_id <span style=color:#f92672>=</span> chat[<span style=color:#e6db74>&#34;id&#34;</span>]
+
+    <span style=color:#66d9ef>while</span> True:
+	result <span style=color:#f92672>=</span> await search_messages(session, guild, user, params)
+	total_results <span style=color:#f92672>=</span> result[<span style=color:#e6db74>&#34;total_results&#34;</span>]
+	messages <span style=color:#f92672>=</span> result[<span style=color:#e6db74>&#34;messages&#34;</span>]
+
+	<span style=color:#75715e># acabaram as mensagens</span>
+	<span style=color:#66d9ef>if</span> total_results <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>:
+	    <span style=color:#66d9ef>return</span>
+
+	<span style=color:#75715e># pegando o id da mensagem mais velha</span>
+	ids <span style=color:#f92672>=</span> [msg[<span style=color:#e6db74>&#34;id&#34;</span>] <span style=color:#66d9ef>for</span> msg <span style=color:#f92672>in</span> messages]
+	max_id <span style=color:#f92672>=</span> min(sorted(ids, key<span style=color:#f92672>=</span>int))
+
+	<span style=color:#75715e># a proxima busca comecara a partir da mensagem mais antiga</span>
+	params <span style=color:#f92672>=</span> {<span style=color:#f92672>**</span>params, <span style=color:#e6db74>&#34;max_id&#34;</span>: max_id}
+
+	messages_tasks <span style=color:#f92672>=</span> [
+	    asyncio<span style=color:#f92672>.</span>create_task(delete_message(session, {
+		<span style=color:#e6db74>&#34;id&#34;</span>: msg[<span style=color:#e6db74>&#34;id&#34;</span>],
+		<span style=color:#e6db74>&#34;channel&#34;</span>: msg[<span style=color:#e6db74>&#34;channel_id&#34;</span>]
+	    }))
+	    <span style=color:#66d9ef>for</span> msg <span style=color:#f92672>in</span> messages
+	]
+
+	await asyncio<span style=color:#f92672>.</span>gather(<span style=color:#f92672>*</span>messages_tasks)
+
+
+async <span style=color:#66d9ef>def</span> <span style=color:#a6e22e>main</span>():
+    <span style=color:#75715e># seu token aqui</span>
+    TOKEN <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;&#34;</span>
+
+    session <span style=color:#f92672>=</span> requests<span style=color:#f92672>.</span>Session()
+    session<span style=color:#f92672>.</span>headers<span style=color:#f92672>.</span>update({<span style=color:#e6db74>&#34;Authorization&#34;</span>: TOKEN})
+
+    resp <span style=color:#f92672>=</span> session<span style=color:#f92672>.</span>get(URL_USERS_ME)
+    <span style=color:#66d9ef>if</span> resp<span style=color:#f92672>.</span>status_code <span style=color:#f92672>==</span> <span style=color:#ae81ff>403</span> <span style=color:#f92672>or</span> resp<span style=color:#f92672>.</span>status_code <span style=color:#f92672>==</span> <span style=color:#ae81ff>401</span>:
+	<span style=color:#66d9ef>raise</span> <span style=color:#a6e22e>Exception</span>(<span style=color:#e6db74>&#34;usuário não autorizado. token inválido&#34;</span>)
+
+    user <span style=color:#f92672>=</span> resp<span style=color:#f92672>.</span>json()
+    <span style=color:#66d9ef>print</span>(f<span style=color:#e6db74>&#34;logged in as: {}&#34;</span>, user[<span style=color:#e6db74>&#34;username&#34;</span>])
+    guilds <span style=color:#f92672>=</span> session<span style=color:#f92672>.</span>get(URL_USERS_ME_GUILDS)<span style=color:#f92672>.</span>json()
+
+
+    tasks <span style=color:#f92672>=</span> [
+	asyncio<span style=color:#f92672>.</span>create_task(
+	    search_messages_worker(session, guild, user)
+	)
+	<span style=color:#66d9ef>for</span> guild <span style=color:#f92672>in</span> guilds
+    ]
+
+    await asyncio<span style=color:#f92672>.</span>gather(<span style=color:#f92672>*</span>tasks)
+    <span style=color:#66d9ef>print</span>(<span style=color:#e6db74>&#34;Done!&#34;</span>)
+
+asyncio<span style=color:#f92672>.</span>run(main())
+</code></pre></div><p>Você pode conferir o código com algumas adições no <a href=https://github.com/ratsclub/nuke>Github</a>.</p></div></div></div></div><footer class=footer><div class=footer__inner><div class=copyright><span>© 2020 Powered by <a href=http://gohugo.io>Hugo</a></span>
+<span>:: Theme made by <a href=https://twitter.com/panr>panr</a></span></div></div></footer><script src=https://ratsclub.github.io/assets/main.js></script><script src=https://ratsclub.github.io/assets/prism.js></script></div></body></html>
