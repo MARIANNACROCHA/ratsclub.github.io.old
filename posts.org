@@ -342,12 +342,178 @@ asyncio.run(main())
 
 Você pode conferir o código com algumas adições no [[https://github.com/ratsclub/nuke][Github]].
 
-* TODO Utilizando ox-hugo com o GitHub Pages :emacs:org:
-:PROPERTIES:
-:EXPORT_FILE_NAME: ox-hugo-github-pages
-:EXPORT_DATE: 2020-08-04
-:END:
+* Setup declarativo de e-mail utilizando [[https://nixos.org/learn.html][Nix]] e [[https://notmuchmail.org/][notmuch]] :emacs:nix:email:
 
-Sou um utilizador assíduo de [[https://orgmode.org/][org-mode]] e a única coisa que me faltava era uma forma fácil de publicar um blog pessoal e também contribuir com outros blogs sem que tenha que deixar de utilizá-lo.
+Sempre utilizei o [[https://www.thunderbird.net/en-US/][Thunderbird]] como cliente de e-mail, entretanto uma coisa sempre me incomodou: a busca é lenta. Isso se mostra verdadeiro até mesmo para uma pessoa que faz um uso leve de e-mails.
 
-Foi pesquisando por uma solução de blogging com org-mode que descobri o [[https://ox-hugo.scripter.co/][ox-hugo]], um /backend/ do exportador do Org. Ele faz o trabalho sujo de converter um arquivo /.org/ para um Markdown compatível com o [[https://gohugo.io/][Hugo]].
+Aqui entra o [[https://notmuchmail.org/][notmuch]], de acordo com seu próprio site, é um sistema de busca e tags globais para e-mails. Ele é encarregado por fazer buscas rápidas (o site garante que milhões de mensagens /não são muito/) e manter sua caixa de entrada vazia através de seu sistema de tags.
+
+** Requisitos
+- [[https://nixos.org/learn.html][Nix]] (com [[https://github.com/rycee/home-manager][Home Manager]]) como gerenciador de pacotes
+- [[https://isync.sourceforge.io/mbsync.html][mbsync]] para a sincronização dos e-mails via IMAP
+- [[https://marlam.de/msmtp/][msmtp]] para enviar os e-mails
+
+** Nix e Home Manager
+
+/Nix/ é a linguagem funcional utilizada pelo gerenciador de pacotes de mesmo nome. Através dela que declaramos pacotes, serviços e módulos que serão instalados em nosso sistema. Contudo, esse guia fora escrito em um sistema Ubuntu, logo não é preciso ser usuário de [[https://nixos.org/][NixOS]] (a distro oficial do Nix) para seguí-lo.
+
+/Home Manager/ consiste em uma ferramenta feita na linguagem /Nix/ e tem como objetivo gerenciar seu ambiente de usuário de forma /declarativa/. O que isso quer dizer? Você pode dar adeus a boa parte de suas /dotfiles/ e abraçar o modo Nix de configurar um ambiente. Um exemplo dado em seu repositório oficial é a configuração do ~gpg-agent~:
+
+#+BEGIN_SRC nix
+services.gpg-agent = {
+  enable = true;
+  defaultCacheTtl = 34560001;
+  maxCacheTtl = 34560001;
+  defaultCacheTtlSsh = 34560001;
+  maxCacheTtlSsh = 34560001;
+  enableSshSupport = true;
+};
+#+END_SRC
+
+Por meio desta expressão o arquivo ~$GNUPGHOME/gpg-agent.conf~ será criado automaticamente:
+
+#+BEGIN_SRC conf
+enable-ssh-support
+default-cache-ttl 34560001
+default-cache-ttl-ssh 34560001
+max-cache-ttl 34560001
+max-cache-ttl-ssh 34560001
+pinentry-program /nix/store/y355ly245pa6ps4813rrqc00rm4ki335-pinentry-1.1.0-gtk2/bin/pinentry
+#+END_SRC
+
+** Configurando o e-mail
+
+*** Programas e serviços
+
+No decorrer da configuração será utilizado um único arquivo chamado ~email.nix~. Comecemos com a declaração dos programas e serviços necessários.
+
+#+BEGIN_SRC nix
+programs.mbsync.enable = true;
+programs.msmtp.enable = true;
+programs.notmuch = {
+  enable = true;
+  hooks = {
+    preNew = "mbsync --all";
+  };
+};
+
+services.mbsync = {
+  enable = true;
+  frequency = "*:0/5";
+};
+#+END_SRC
+
+A sintaxe é bem direta, todavia devo ressaltar alguns pontos.
+
+Primeiramente, a expressão ~programs.notmuch.hooks.preNew = "mbsync --all"~ faz o quê? Isto diz para o /notmuch/ buscar os e-mails diretamente do /mbsync/ ao rodarmos o comando ~notmuch new~. Logo após declaramos ~services.mbsync.frequency = "\*:0/5"~ e isso nada mais é do que a frequência com que o ~mbsync~ será rodado. A notação ~\*:0/5~ faz parte do [[https://www.freedesktop.org/software/systemd/man/systemd.time.html#Calendar%20Events][Calendar Events]] do systemd.
+
+*** Contas
+
+Chegou a hora de configurar nossas contas de e-mail. A expressão utilizada para isso é ~accounts.email.accounts."name".property~, dessa forma podemos configurar diversas contas de e-mail diferentes. Bom, mãos à obra!
+
+#+BEGIN_SRC nix
+accounts.email = {
+  accounts.mustti =
+    let
+      emailAccount = "ratsclub@empresa.com.br";
+      emailHost = "mail.empresa.com.br";
+    in {
+      realName = "Clube dos Ratos";
+      address = emailAccount;
+      userName = emailAccount;
+      primary = true;
+
+      imap.host = emailHost;
+      smtp.host = emailHost;
+      msmtp.enable = true;
+      notmuch.enable = true;
+
+      mbsync = {
+        enable = true;
+        create = "both";
+        expunge = "both";
+      };
+
+      signature = {
+        text = ''
+            Clube dos Ratos
+            https://empresa.com.br/
+          '';
+        showSignature = "append";
+      };
+
+      passwordCommand = "${pkgs.pass}/bin/pass empresa/email";
+    };
+};
+#+END_SRC
+
+ As partes sobre ~imap~ e ~smtp~ são bem óbvias. Assim como habilitar os programas ~msmtp~ e ~notmuch~. Já o ~mbsync~ possui algumas propriedades interessantes:
+
+ - *create*: a permissão de criar novos e-mails;
+ - *expunge*: a permissão de deletar e-mails.
+
+Definindo o valor de ambos como ~both~ fará com que modificações sejam replicadas em ambos ambientes, local e servidor.
+
+Nos resta a propriedade ~passwordCommand~, ela é responsável por prover a senha de seu e-mail. Eu utilzo o [[https://www.passwordstore.org/][pass]] para isso, mas você também pode utilizar o ~gnupg~, ~keepassxc~, entre outros. Basta passar um comando shell à esta propriedade.
+
+** Conclusão
+
+Configurar uma conta de e-mail utilizando o /Nix/ foi bem mais fácil do que eu esperava. Isso claro, graças ao /Home Manager/. Sem ele provavelmente teríamos muito mais trabalho.
+
+Agora basta escolher seu [[https://notmuchmail.org/frontends/][cliente]] e aproveitar o /notmuch/. Para usuários de emacs há o cliente oficial [[https://notmuchmail.org/notmuch-emacs/][notmuch-emacs]] e caso seja usuário de [[https://github.com/hlissner/doom-emacs][Doom Emacs]], basta adicioná-lo em seu ~init.el~.
+
+O arquivo de configuração final ficou assim:
+
+#+BEGIN_SRC nix
+{ pkgs, ... }:
+
+{
+  programs.mbsync.enable = true;
+  programs.msmtp.enable = true;
+  programs.notmuch = {
+    enable = true;
+    hooks = {
+      preNew = "mbsync --all";
+    };
+  };
+
+  services.mbsync = {
+    enable = true;
+    frequency = "*:0/5";
+  };
+
+  accounts.email = {
+    accounts.mustti =
+      let
+        emailAccount = "ratsclub@empresa.com.br";
+        emailHost = "mail.empresa.com.br";
+      in {
+        realName = "Clube dos Ratos";
+        address = emailAccount;
+        userName = emailAccount;
+        primary = true;
+
+        imap.host = emailHost;
+        smtp.host = emailHost;
+        msmtp.enable = true;
+        notmuch.enable = true;
+
+        mbsync = {
+          enable = true;
+          create = "both";
+          expunge = "both";
+        };
+
+        signature = {
+          text = ''
+            Clube dos Ratos
+            https://empresa.com.br/
+          '';
+          showSignature = "append";
+        };
+
+        passwordCommand = "${pkgs.pass}/bin/pass empresa/email";
+      };
+  };
+}
+#+END_SRC
