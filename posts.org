@@ -5,7 +5,7 @@
 :EXPORT_DATE: 2020-08-01
 :END:
 
-Não sei vocês, mas eu costumo apagar minhas mensagens com frequência. Sempre sinto certa ansiedade por ter mensagens demais em locais demais. Então para resolver esse problema decidi criar um bot que automatize essa tarefa.
+Não sei vocês, mas eu costumo apagar minhas mensagens com frequência. Sempre sinto certa ansiedade por ter mensagens demais em locais demais e então decidi criar um bot que automatize parte dessa tarefa.
 
 ** Requisitos
 - ~Python 3.4 ou superior~
