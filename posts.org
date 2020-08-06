@@ -343,6 +343,10 @@ asyncio.run(main())
 Você pode conferir o código com algumas adições no [[https://github.com/ratsclub/nuke][Github]].
 
 * Setup declarativo de e-mail utilizando [[https://nixos.org/learn.html][Nix]] e [[https://notmuchmail.org/][notmuch]] :emacs:nix:email:
+:PROPERTIES:
+:EXPORT_FILE_NAME: setup-declarativo-email-nix
+:EXPORT_DATE: 2020-08-06
+:END:
 
 Sempre utilizei o [[https://www.thunderbird.net/en-US/][Thunderbird]] como cliente de e-mail, entretanto uma coisa sempre me incomodou: a busca é lenta. Isso se mostra verdadeiro até mesmo para uma pessoa que faz um uso leve de e-mails.
 
