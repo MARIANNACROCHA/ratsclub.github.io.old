@@ -361,7 +361,7 @@ Aqui entra o [[https://notmuchmail.org/][notmuch]], de acordo com seu próprio s
 
 /Nix/ é a linguagem funcional utilizada pelo gerenciador de pacotes de mesmo nome. Através dela que declaramos pacotes, serviços e módulos que serão instalados em nosso sistema. Contudo, esse guia fora escrito em um sistema Ubuntu, logo não é preciso ser usuário de [[https://nixos.org/][NixOS]] (a distro oficial do Nix) para seguí-lo.
 
-/Home Manager/ consiste em uma ferramenta feita na linguagem /Nix/ e tem como objetivo gerenciar seu ambiente de usuário de forma /declarativa/. O que isso quer dizer? Você pode dar adeus a boa parte de suas /dotfiles/ e abraçar o modo Nix de configurar um ambiente. Um exemplo dado em seu repositório oficial é a configuração do ~gpg-agent~:
+/Home Manager/ consiste em uma ferramenta feita na linguagem /Nix/ e tem como objetivo gerenciar seu ambiente de usuário de forma /declarativa/. Mas o que isso quer dizer? Você pode dar adeus a boa parte de suas /dotfiles/ e abraçar o modo Nix de configurar um ambiente. Um exemplo dado em seu repositório oficial é a configuração do ~gpg-agent~:
 
 #+BEGIN_SRC nix
 services.gpg-agent = {
@@ -409,7 +409,7 @@ services.mbsync = {
 
 A sintaxe é bem direta, todavia devo ressaltar alguns pontos.
 
-Primeiramente, a expressão ~programs.notmuch.hooks.preNew = "mbsync --all"~ faz o quê? Isto diz para o /notmuch/ buscar os e-mails diretamente do /mbsync/ ao rodarmos o comando ~notmuch new~. Logo após declaramos ~services.mbsync.frequency = "\*:0/5"~ e isso nada mais é do que a frequência com que o ~mbsync~ será rodado. A notação ~\*:0/5~ faz parte do [[https://www.freedesktop.org/software/systemd/man/systemd.time.html#Calendar%20Events][Calendar Events]] do systemd.
+Primeiramente, a expressão ~programs.notmuch.hooks.preNew = "mbsync --all"~ faz o quê? Isto diz para o /notmuch/ buscar os e-mails diretamente do /mbsync/ ao rodarmos o comando ~notmuch new~. Logo após declaramos ~services.mbsync.frequency = "*:0/5"~ e isso nada mais é do que a frequência com que o ~mbsync~ será rodado. A notação ~*:0/5~ faz parte do [[https://www.freedesktop.org/software/systemd/man/systemd.time.html#Calendar%20Events][Calendar Events]] do systemd.
 
 *** Contas
 
