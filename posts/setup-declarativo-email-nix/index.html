@@ -1,0 +1,118 @@
+<!doctype html><html lang=pt-br><head><title>Setup declarativo de e-mail utilizando [Nix] (https://nixos.org/learn.html) e [notmuch] (https://notmuchmail.org/) :: ratsclub</title><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Sempre utilizei o Thunderbird como cliente de e-mail, entretanto uma coisa sempre me incomodou: a busca é lenta. Isso se mostra verdadeiro até mesmo para uma pessoa que faz um uso leve de e-mails.
+Aqui entra o notmuch, de acordo com seu próprio site, é um sistema de busca e tags globais para e-mails. Ele é encarregado por fazer buscas rápidas (o site garante que milhões de mensagens não são muito) e manter sua caixa de entrada vazia através de seu sistema de tags."><meta name=keywords content><meta name=robots content="noodp"><link rel=canonical href=https://ratsclub.github.io/posts/setup-declarativo-email-nix/><link rel=stylesheet href=https://ratsclub.github.io/assets/style.css><link rel=stylesheet href=https://ratsclub.github.io/assets/red.css><link rel=apple-touch-icon-precomposed sizes=144x144 href=https://ratsclub.github.io/img/apple-touch-icon-144-precomposed.png><link rel="shortcut icon" href=https://ratsclub.github.io/img/favicon/red.png><meta name=twitter:card content="summary"><meta name=twitter:creator content><meta property="og:locale" content="pt-br"><meta property="og:type" content="article"><meta property="og:title" content="Setup declarativo de e-mail utilizando [Nix] (https://nixos.org/learn.html) e [notmuch] (https://notmuchmail.org/) :: ratsclub"><meta property="og:description" content="Sempre utilizei o Thunderbird como cliente de e-mail, entretanto uma coisa sempre me incomodou: a busca é lenta. Isso se mostra verdadeiro até mesmo para uma pessoa que faz um uso leve de e-mails.
+Aqui entra o notmuch, de acordo com seu próprio site, é um sistema de busca e tags globais para e-mails. Ele é encarregado por fazer buscas rápidas (o site garante que milhões de mensagens não são muito) e manter sua caixa de entrada vazia através de seu sistema de tags."><meta property="og:url" content="https://ratsclub.github.io/posts/setup-declarativo-email-nix/"><meta property="og:site_name" content="Setup declarativo de e-mail utilizando [Nix] (https://nixos.org/learn.html) e [notmuch] (https://notmuchmail.org/)"><meta property="og:image" content="https://ratsclub.github.io/img/favicon/red.png"><meta property="og:image:width" content="2048"><meta property="og:image:height" content="1024"><meta property="article:published_time" content="2020-08-06 00:00:00 +0000 UTC"></head><body><div class="container center headings--one-size"><header class=header><div class=header__inner><div class=header__logo><a href=/><div class=logo>ratsclub</div></a></div><div class=menu-trigger>menu</div></div><nav class=menu><ul class="menu__inner menu__inner--desktop"><li><a href=/>home</a></li><li><a href=/posts>posts</a></li></ul><ul class="menu__inner menu__inner--mobile"><li><a href=/>home</a></li><li><a href=/posts>posts</a></li></ul></nav></header><div class=content><div class=post><h1 class=post-title><a href=https://ratsclub.github.io/posts/setup-declarativo-email-nix/>Setup declarativo de e-mail utilizando [Nix] (<a href=https://nixos.org/learn.html>https://nixos.org/learn.html</a>) e [notmuch] (<a href=https://notmuchmail.org/>https://notmuchmail.org/</a>)</a></h1><div class=post-meta><span class=post-date>2020-08-06</span></div><span class=post-tags>#<a href=https://ratsclub.github.io/tags/emacs/>emacs</a>&nbsp;
+#<a href=https://ratsclub.github.io/tags/nix/>nix</a>&nbsp;
+#<a href=https://ratsclub.github.io/tags/email/>email</a>&nbsp;</span><div class=post-content><div><p>Sempre utilizei o <a href=https://www.thunderbird.net/en-US/>Thunderbird</a> como cliente de e-mail, entretanto uma coisa sempre me incomodou: a busca é lenta. Isso se mostra verdadeiro até mesmo para uma pessoa que faz um uso leve de e-mails.</p><p>Aqui entra o <a href=https://notmuchmail.org/>notmuch</a>, de acordo com seu próprio site, é um sistema de busca e tags globais para e-mails. Ele é encarregado por fazer buscas rápidas (o site garante que milhões de mensagens <em>não são muito</em>) e manter sua caixa de entrada vazia através de seu sistema de tags.</p><h2 id=requisitos>Requisitos<a href=#requisitos class=hanchor arialabel=Anchor>&#8983;</a></h2><ul><li><a href=https://nixos.org/learn.html>Nix</a> (com <a href=https://github.com/rycee/home-manager>Home Manager</a>) como gerenciador de pacotes</li><li><a href=https://isync.sourceforge.io/mbsync.html>mbsync</a> para a sincronização dos e-mails via IMAP</li><li><a href=https://marlam.de/msmtp/>msmtp</a> para enviar os e-mails</li></ul><h2 id=nix-e-home-manager>Nix e Home Manager<a href=#nix-e-home-manager class=hanchor arialabel=Anchor>&#8983;</a></h2><p><em>Nix</em> é a linguagem funcional utilizada pelo gerenciador de pacotes de mesmo nome. Através dela que declaramos pacotes, serviços e módulos que serão instalados em nosso sistema. Contudo, esse guia fora escrito em um sistema Ubuntu, logo não é preciso ser usuário de <a href=https://nixos.org/>NixOS</a> (a distro oficial do Nix) para seguí-lo.</p><p><em>Home Manager</em> consiste em uma ferramenta feita na linguagem <em>Nix</em> e tem como objetivo gerenciar seu ambiente de usuário de forma <em>declarativa</em>. O que isso quer dizer? Você pode dar adeus a boa parte de suas <em>dotfiles</em> e abraçar o modo Nix de configurar um ambiente. Um exemplo dado em seu repositório oficial é a configuração do <code>gpg-agent</code>:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nix data-lang=nix>services<span style=color:#f92672>.</span>gpg-agent <span style=color:#960050;background-color:#1e0010>=</span> {
+  enable <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>;
+  defaultCacheTtl <span style=color:#f92672>=</span> <span style=color:#ae81ff>34560001</span>;
+  maxCacheTtl <span style=color:#f92672>=</span> <span style=color:#ae81ff>34560001</span>;
+  defaultCacheTtlSsh <span style=color:#f92672>=</span> <span style=color:#ae81ff>34560001</span>;
+  maxCacheTtlSsh <span style=color:#f92672>=</span> <span style=color:#ae81ff>34560001</span>;
+  enableSshSupport <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>;
+};
+</code></pre></div><p>Por meio desta expressão o arquivo <code>$GNUPGHOME/gpg-agent.conf</code> será criado automaticamente:</p><pre><code class=language-conf data-lang=conf>enable-ssh-support
+default-cache-ttl 34560001
+default-cache-ttl-ssh 34560001
+max-cache-ttl 34560001
+max-cache-ttl-ssh 34560001
+pinentry-program /nix/store/y355ly245pa6ps4813rrqc00rm4ki335-pinentry-1.1.0-gtk2/bin/pinentry
+</code></pre><h2 id=configurando-o-e-mail>Configurando o e-mail<a href=#configurando-o-e-mail class=hanchor arialabel=Anchor>&#8983;</a></h2><h3 id=programas-e-serviços>Programas e serviços<a href=#programas-e-serviços class=hanchor arialabel=Anchor>&#8983;</a></h3><p>No decorrer da configuração será utilizado um único arquivo chamado <code>email.nix</code>. Comecemos com a declaração dos programas e serviços necessários.</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nix data-lang=nix>programs<span style=color:#f92672>.</span>mbsync<span style=color:#f92672>.</span>enable <span style=color:#960050;background-color:#1e0010>=</span> <span style=color:#66d9ef>true</span>;
+programs<span style=color:#f92672>.</span>msmtp<span style=color:#f92672>.</span>enable <span style=color:#960050;background-color:#1e0010>=</span> <span style=color:#66d9ef>true</span>;
+programs<span style=color:#f92672>.</span>notmuch <span style=color:#960050;background-color:#1e0010>=</span> {
+  enable <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>;
+  hooks <span style=color:#f92672>=</span> {
+    preNew <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;mbsync --all&#34;</span>;
+  };
+};
+
+services<span style=color:#f92672>.</span>mbsync <span style=color:#960050;background-color:#1e0010>=</span> {
+  enable <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>;
+  frequency <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;*:0/5&#34;</span>;
+};
+</code></pre></div><p>A sintaxe é bem direta, todavia devo ressaltar alguns pontos.</p><p>Primeiramente, a expressão <code>programs.notmuch.hooks.preNew = "mbsync --all"</code> faz o quê? Isto diz para o <em>notmuch</em> buscar os e-mails diretamente do <em>mbsync</em> ao rodarmos o comando <code>notmuch new</code>. Logo após declaramos <code>services.mbsync.frequency = "\*:0/5"</code> e isso nada mais é do que a frequência com que o <code>mbsync</code> será rodado. A notação <code>\*:0/5</code> faz parte do <a href=https://www.freedesktop.org/software/systemd/man/systemd.time.html#Calendar%20Events>Calendar Events</a> do systemd.</p><h3 id=contas>Contas<a href=#contas class=hanchor arialabel=Anchor>&#8983;</a></h3><p>Chegou a hora de configurar nossas contas de e-mail. A expressão utilizada para isso é <code>accounts.email.accounts."name".property</code>, dessa forma podemos configurar diversas contas de e-mail diferentes. Bom, mãos à obra!</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nix data-lang=nix>accounts<span style=color:#f92672>.</span>email <span style=color:#960050;background-color:#1e0010>=</span> {
+  accounts<span style=color:#f92672>.</span>mustti <span style=color:#f92672>=</span>
+    <span style=color:#66d9ef>let</span>
+      emailAccount <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;ratsclub@empresa.com.br&#34;</span>;
+      emailHost <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;mail.empresa.com.br&#34;</span>;
+    <span style=color:#66d9ef>in</span> {
+      realName <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;Clube dos Ratos&#34;</span>;
+      address <span style=color:#f92672>=</span> emailAccount;
+      userName <span style=color:#f92672>=</span> emailAccount;
+      primary <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>;
+
+      imap<span style=color:#f92672>.</span>host <span style=color:#f92672>=</span> emailHost;
+      smtp<span style=color:#f92672>.</span>host <span style=color:#f92672>=</span> emailHost;
+      msmtp<span style=color:#f92672>.</span>enable <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>;
+      notmuch<span style=color:#f92672>.</span>enable <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>;
+
+      mbsync <span style=color:#f92672>=</span> {
+	enable <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>;
+	create <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;both&#34;</span>;
+	expunge <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;both&#34;</span>;
+      };
+
+      signature <span style=color:#f92672>=</span> {
+	text <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;&#39;
+</span><span style=color:#e6db74>	    Clube dos Ratos
+</span><span style=color:#e6db74>	    https://empresa.com.br/
+</span><span style=color:#e6db74>	  &#39;&#39;</span>;
+	showSignature <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;append&#34;</span>;
+      };
+
+      passwordCommand <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;</span><span style=color:#e6db74>${</span>pkgs<span style=color:#f92672>.</span>pass<span style=color:#e6db74>}</span><span style=color:#e6db74>/bin/pass empresa/email&#34;</span>;
+    };
+};
+</code></pre></div><p>As partes sobre <code>imap</code> e <code>smtp</code> são bem óbvias. Assim como habilitar os programas <code>msmtp</code> e <code>notmuch</code>. Já o <code>mbsync</code> possui algumas propriedades interessantes:</p><ul><li><strong>create</strong>: a permissão de criar novos e-mails;</li><li><strong>expunge</strong>: a permissão de deletar e-mails.</li></ul><p>Definindo o valor de ambos como <code>both</code> fará com que modificações sejam replicadas em ambos ambientes, local e servidor.</p><p>Nos resta a propriedade <code>passwordCommand</code>, ela é responsável por prover a senha de seu e-mail. Eu utilzo o <a href=https://www.passwordstore.org/>pass</a> para isso, mas você também pode utilizar o <code>gnupg</code>, <code>keepassxc</code>, entre outros. Basta passar um comando shell à esta propriedade.</p><h2 id=conclusão>Conclusão<a href=#conclusão class=hanchor arialabel=Anchor>&#8983;</a></h2><p>Configurar uma conta de e-mail utilizando o <em>Nix</em> foi bem mais fácil do que eu esperava. Isso claro, graças ao <em>Home Manager</em>. Sem ele provavelmente teríamos muito mais trabalho.</p><p>Agora basta escolher seu <a href=https://notmuchmail.org/frontends/>cliente</a> e aproveitar o <em>notmuch</em>. Para usuários de emacs há o cliente oficial <a href=https://notmuchmail.org/notmuch-emacs/>notmuch-emacs</a> e caso seja usuário de <a href=https://github.com/hlissner/doom-emacs>Doom Emacs</a>, basta adicioná-lo em seu <code>init.el</code>.</p><p>O arquivo de configuração final ficou assim:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-nix data-lang=nix>{ pkgs<span style=color:#f92672>,</span> <span style=color:#f92672>...</span> }:
+
+{
+  programs<span style=color:#f92672>.</span>mbsync<span style=color:#f92672>.</span>enable <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>;
+  programs<span style=color:#f92672>.</span>msmtp<span style=color:#f92672>.</span>enable <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>;
+  programs<span style=color:#f92672>.</span>notmuch <span style=color:#f92672>=</span> {
+    enable <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>;
+    hooks <span style=color:#f92672>=</span> {
+      preNew <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;mbsync --all&#34;</span>;
+    };
+  };
+
+  services<span style=color:#f92672>.</span>mbsync <span style=color:#f92672>=</span> {
+    enable <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>;
+    frequency <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;*:0/5&#34;</span>;
+  };
+
+  accounts<span style=color:#f92672>.</span>email <span style=color:#f92672>=</span> {
+    accounts<span style=color:#f92672>.</span>mustti <span style=color:#f92672>=</span>
+      <span style=color:#66d9ef>let</span>
+	emailAccount <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;ratsclub@empresa.com.br&#34;</span>;
+	emailHost <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;mail.empresa.com.br&#34;</span>;
+      <span style=color:#66d9ef>in</span> {
+	realName <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;Clube dos Ratos&#34;</span>;
+	address <span style=color:#f92672>=</span> emailAccount;
+	userName <span style=color:#f92672>=</span> emailAccount;
+	primary <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>;
+
+	imap<span style=color:#f92672>.</span>host <span style=color:#f92672>=</span> emailHost;
+	smtp<span style=color:#f92672>.</span>host <span style=color:#f92672>=</span> emailHost;
+	msmtp<span style=color:#f92672>.</span>enable <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>;
+	notmuch<span style=color:#f92672>.</span>enable <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>;
+
+	mbsync <span style=color:#f92672>=</span> {
+	  enable <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>;
+	  create <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;both&#34;</span>;
+	  expunge <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;both&#34;</span>;
+	};
+
+	signature <span style=color:#f92672>=</span> {
+	  text <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;&#39;
+</span><span style=color:#e6db74>	    Clube dos Ratos
+</span><span style=color:#e6db74>	    https://empresa.com.br/
+</span><span style=color:#e6db74>	  &#39;&#39;</span>;
+	  showSignature <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;append&#34;</span>;
+	};
+
+	passwordCommand <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;</span><span style=color:#e6db74>${</span>pkgs<span style=color:#f92672>.</span>pass<span style=color:#e6db74>}</span><span style=color:#e6db74>/bin/pass empresa/email&#34;</span>;
+      };
+  };
+}
+</code></pre></div></div></div><div class=pagination><div class=pagination__title><span class=pagination__title-h>ler outro post</span><hr></div><div class=pagination__buttons><span class="button next"><a href=https://ratsclub.github.io/posts/deletando-mensagens-python/><span class=button__text>Apagando mensagens do Discord com Python</span>
+<span class=button__icon>→</span></a></span></div></div></div></div><footer class=footer><div class=footer__inner><div class=copyright><span>© 2020 Powered by <a href=http://gohugo.io>Hugo</a></span>
+<span>:: Theme made by <a href=https://twitter.com/panr>panr</a></span></div></div></footer><script src=https://ratsclub.github.io/assets/main.js></script><script src=https://ratsclub.github.io/assets/prism.js></script></div></body></html>
