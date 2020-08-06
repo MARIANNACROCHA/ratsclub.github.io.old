@@ -342,7 +342,7 @@ asyncio.run(main())
 
 Você pode conferir o código com algumas adições no [[https://github.com/ratsclub/nuke][Github]].
 
-* Setup declarativo de e-mail utilizando [[https://nixos.org/learn.html][Nix]] e [[https://notmuchmail.org/][notmuch]] :emacs:nix:email:
+* Setup declarativo de e-mail utilizando Nix e notmuch :emacs:nix:email:
 :PROPERTIES:
 :EXPORT_FILE_NAME: setup-declarativo-email-nix
 :EXPORT_DATE: 2020-08-06
@@ -464,7 +464,13 @@ Nos resta a propriedade ~passwordCommand~, ela é responsável por prover a senh
 
 Configurar uma conta de e-mail utilizando o /Nix/ foi bem mais fácil do que eu esperava. Isso claro, graças ao /Home Manager/. Sem ele provavelmente teríamos muito mais trabalho.
 
-Agora basta escolher seu [[https://notmuchmail.org/frontends/][cliente]] e aproveitar o /notmuch/. Para usuários de emacs há o cliente oficial [[https://notmuchmail.org/notmuch-emacs/][notmuch-emacs]] e caso seja usuário de [[https://github.com/hlissner/doom-emacs][Doom Emacs]], basta adicioná-lo em seu ~init.el~.
+Agora basta escolher seu [[https://notmuchmail.org/frontends/][cliente]] e aproveitar o /notmuch/. Para usuários de emacs há o cliente oficial [[https://notmuchmail.org/notmuch-emacs/][notmuch-emacs]] e caso seja usuário de [[https://github.com/hlissner/doom-emacs][Doom Emacs]], basta adicioná-lo em seu ~init.el~. Como sou um usuário novato de Emacs, não sabia que precisaria configurar meu domínio de saída, basta adicioná-lo para evitar o erro ~i-did-not-set--mail-host-address--so-tickle-me~.
+
+#+BEGIN_SRC elisp
+(use-package! notmuch
+  :config
+  (setq mail-host-address "empresa.com.br"))
+#+END_SRC
 
 O arquivo de configuração final ficou assim:
 
