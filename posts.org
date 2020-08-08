@@ -389,7 +389,7 @@ pinentry-program /nix/store/y355ly245pa6ps4813rrqc00rm4ki335-pinentry-1.1.0-gtk2
 
 *** Programas e serviços
 
-No decorrer da configuração será utilizado um único arquivo chamado ~email.nix~. Comecemos com a declaração dos programas e serviços necessários.
+No decorrer da configuração será utilizado um arquivo único chamado ~email.nix~. Comecemos com a declaração dos programas e serviços necessários.
 
 #+BEGIN_SRC nix
 programs.mbsync.enable = true;
