@@ -636,11 +636,11 @@ O IPFS sabe onde buscar essa informação pelo seu conteúdo, não sua localiza�
 
 Tornar possível baixar um arquivo de muitos locais que não são gerenciados por uma única organização.
 
-- /Uma internet resiliente/: Se alguém derrubar os servidores da Wikipedia ou um engenheiro comete um grande erro que cause a queda dos servidores, você ainda conseguirá visualizar a página a partir de outra pessoa.
+- *Uma internet resiliente*: Se alguém derrubar os servidores da Wikipedia ou um engenheiro comete um grande erro que cause a queda dos servidores, você ainda conseguirá visualizar a página a partir de outra pessoa.
 
-- /Dificulta a censura de conteúdo/: Como os arquivos no IPFS podem vir de diversos lugares, é bem difícil para que qualquer um (mesmo que sejam estados, corporações ou qualquer outra pessoa) bloquear coisas. Em 2017, a Turquia bloqueou a Wikipedia e a Espanha bloqueou websites relacionados ao movimento de independência da Catalunha.
+- *Dificulta a censura de conteúdo*: Como os arquivos no IPFS podem vir de diversos lugares, é bem difícil para que qualquer um (mesmo que sejam estados, corporações ou qualquer outra pessoa) bloquear coisas. Em 2017, a Turquia bloqueou a Wikipedia e a Espanha bloqueou websites relacionados ao movimento de independência da Catalunha.
 
-- /Pode acelerar a web quando você está distante ou desconectado/: Se você consegue um arquivo de alguém próximo ao invés de alguém a milhares de quilômetros de distância, claramente tornará o processo mais rápido. Isso é especialmente valioso se sua comunidade tem uma rede local (os computadores são interligados), mas não possue uma boa conexão à internet. (Organizações com grande poder aquisitivo e conhecimento técnico fazem isso hoje em dia utilizando múltiplos bancos de dados e servidores que fornecem conteúdos estáticos (fotos, vídeos, textos...). IPFS quer tornar isso possível para todos.)
+- *Pode acelerar a web quando você está distante ou desconectado*: Se você consegue um arquivo de alguém próximo ao invés de alguém a milhares de quilômetros de distância, claramente tornará o processo mais rápido. Isso é especialmente valioso se sua comunidade tem uma rede local (os computadores são interligados), mas não possue uma boa conexão à internet. (Organizações com grande poder aquisitivo e conhecimento técnico fazem isso hoje em dia utilizando múltiplos bancos de dados e servidores que fornecem conteúdos estáticos (fotos, vídeos, textos...). IPFS quer tornar isso possível para todos.)
 
 *** Mas de onde saiu esse nome?
 
