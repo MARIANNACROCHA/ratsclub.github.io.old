@@ -1,8 +1,8 @@
 #+HUGO_BASE_DIR: ./
-* Notas @notas
+* Notas :@notas:
 ** diminuindo a lentidão do dnf :fedora:dnf:linux:
 :PROPERTIES:
-:export_file_name: lentidao-dnf
+:export_file_name: diminuindo-lentidao-dnf
 :export_date: 2020-09-13
 :END:
 
@@ -17,7 +17,45 @@ max_parallel_downloads=10
 fastestmirror=1
 #+end_src
 
-* Posts @posts
+** removendo itens duplicados em Javascript :javascript:
+:PROPERTIES:
+:export_file_name: removendo-duplicados-javascript
+:export_date: 2020-09-12
+:END:
+
+Alguns exemplos de como remover itens duplicados em arrays.
+
+*** Array
+**** Set()
+#+begin_src javascript
+const arr = ['foo', 'bar', 'bar'];
+const unique = [...new Set(arr)];
+#+end_src
+#+begin_src javascript
+const arr =
+#+end_src
+*** Array de objetos
+**** Array.filter()
+**** for loop
+#+begin_src javascript
+const arr = [{ name: 'foo', age: 20 }, { name: 'foo', age: 22 }, { name: 'bar', age: 25 }];
+
+const unique = [];
+for (const item of arr) {
+    if (!unique.find(item => item.name)) {
+        unique.push(item);
+    }
+}
+#+end_src
+
+**** Map()
+#+begin_src javascript
+const arr = [{ name: 'foo', age: 20 }, { name: 'foo', age: 22 }, { name: 'bar', age: 25 }];
+const uniqueMap = new Map(arr.map(item => [`${item.name}\t${item.age}`, item]));
+const uniqueArr = [...uniqueMap.values()];
+#+end_src
+
+* Posts :@posts:
 ** apagando mensagens do Discord com Python :python:discord:bot:
 :PROPERTIES:
 :EXPORT_FILE_NAME: deletando-mensagens-python
