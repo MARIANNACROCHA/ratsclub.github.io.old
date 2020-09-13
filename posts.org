@@ -613,8 +613,10 @@ Agora a variável ~$GOPATH~ serve para dizer ao Go onde ele deve salvar boa part
 Antes de mais nada, *não utilize* o diretório ~$GOPATH/src~ para seus projetos! Agora que você está em seu próprio diretório, basta rodar o comando ~go mod init nome-do-seu-repositório-git~ [fn:: Um nome como github.com/username/reponame] para iniciá-lo.
 
 ** conhecendo o IPFS :ipfs:p2p:
+:PROPERTIES:
 :EXPORT_FILE_NAME: conhecendo-ipfs
 :EXPORT_DATE: 2019-10-22
+:END:
 
 *** IPFS? É de comer?
 
