@@ -1,6 +1,6 @@
 #+HUGO_BASE_DIR: ./
 * Notas @notas
-** Diminuindo a lentidão do dnf :fedora:dnf:linux:
+** diminuindo a lentidão do dnf :fedora:dnf:linux:
 :PROPERTIES:
 :export_file_name: lentidao-dnf
 :export_date: 2020-09-13
@@ -13,7 +13,7 @@ Podemos acelerar um pouco as coisas ao adicionar as seguintes flags ao arquivo ~
 - ~fastestmirror=1~
 
 * Posts @posts
-** Apagando mensagens do Discord com Python :python:discord:bot:
+** apagando mensagens do Discord com Python :python:discord:bot:
 :PROPERTIES:
 :EXPORT_FILE_NAME: deletando-mensagens-python
 :EXPORT_DATE: 2020-08-01
@@ -356,7 +356,7 @@ asyncio.run(main())
 
 Você pode conferir o código com algumas adições no [[https://github.com/ratsclub/nuke][Github]].
 
-** Setup declarativo de e-mail utilizando Nix e notmuch :emacs:nix:email:
+** setup declarativo de e-mail utilizando Nix e notmuch :emacs:nix:email:
 :PROPERTIES:
 :EXPORT_FILE_NAME: setup-declarativo-email-nix
 :EXPORT_DATE: 2020-08-06
@@ -542,7 +542,7 @@ O arquivo de configuração final ficou assim:
 }
 #+END_SRC
 
-** Como configuro o $GOPATH? :go:
+** desenvolvimento Go e $GOPATH em 2020 :go:
 :PROPERTIES:
 :EXPORT_FILE_NAME: desenvolvendo-go-2020
 :EXPORT_DATE: 2020-09-13

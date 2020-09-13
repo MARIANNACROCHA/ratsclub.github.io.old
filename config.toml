@@ -47,11 +47,7 @@ paginate = 5
         identifier = "home"
         name = "home"
         url = "/"
-      [[languages.pt-br.menu.main]]
-        identifier = "posts"
-        name = "posts"
-        url = "/posts"
-        
+
       [[languages.pt-br.menu.main]]
         identifier = "rss"
         name = "rss"

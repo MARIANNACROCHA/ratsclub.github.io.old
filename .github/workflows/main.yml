@@ -38,3 +38,4 @@ jobs:
         personal_token: ${{ secrets.TOKEN }}
         publish_dir: ./public
         publish_branch: master
+        cname: blog.freire.dev.br
