@@ -26,7 +26,7 @@ fastestmirror=1
 Alguns exemplos de como remover itens duplicados em arrays.
 
 *** Array
-**** Set()
+- Set()
 #+begin_src javascript
 const arr = ['foo', 'bar', 'bar'];
 const unique = [...new Set(arr)];
@@ -35,8 +35,14 @@ const unique = [...new Set(arr)];
 const arr =
 #+end_src
 *** Array de objetos
-**** Array.filter()
-**** for loop
+- Array.filter()
+#+begin_src javascript
+const arr = [{ name: 'foo', age: 20 }, { name: 'foo', age: 22 }, { name: 'bar', age: 25 }];
+const unique = arr.filter((item, index, self) =>
+                    self.findIndex(value => item.name === value.name) === index);
+#+end_src
+
+- for loop
 #+begin_src javascript
 const arr = [{ name: 'foo', age: 20 }, { name: 'foo', age: 22 }, { name: 'bar', age: 25 }];
 
@@ -48,7 +54,7 @@ for (const item of arr) {
 }
 #+end_src
 
-**** Map()
+- Map()
 #+begin_src javascript
 const arr = [{ name: 'foo', age: 20 }, { name: 'foo', age: 22 }, { name: 'bar', age: 25 }];
 const uniqueMap = new Map(arr.map(item => [`${item.name}\t${item.age}`, item]));
@@ -648,7 +654,7 @@ Sobre o link da página do Vincent Van Gogh que vimos acima. Parece meio estranh
 
 ~/ipfs/QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco/wiki/Vincent_Van_Gogh.html~
 
-Esse amontoado de letras após //ipfs// é chamado de /identificador de conteúdo/ e é como o IPFS consegue conteúdos de diversos lugares.
+Esse amontoado de letras após ~/ipfs/~ é chamado de /identificador de conteúdo/ e é como o IPFS consegue conteúdos de diversos lugares.
 
 URLS e caminhos de arquivos tradicionais como...
 
