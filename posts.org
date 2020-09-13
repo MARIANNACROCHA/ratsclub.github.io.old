@@ -6,7 +6,9 @@
 :export_date: 2020-09-13
 :END:
 
-Uma das primeiras coisas que percebemos ao migrarmos de gerenciadores de pacotes como o ~apk~ ou o ~pacman~ para o ~dnf~ é sua lentidão. Isso se deve principalmente pelo fato dele atualizar seu cache toda vez que realizamos alguma ação com ele, enquanto o ~apt~, por exemplo, possui um comando dedicado a isso.
+Uma das primeiras coisas que percebemos ao migrarmos de gerenciadores de pacotes como o ~apk~ ou o ~pacman~ para o ~dnf~ é sua lentidão.
+
+Esta lentidão se deve principalmente pelo fato dele atualizar seu cache toda vez que realizamos alguma ação com ele, enquanto o ~apt~, por exemplo, possui um comando dedicado a isso.
 
 Podemos acelerar um pouco as coisas ao adicionar as seguintes flags ao arquivo ~/etc/dnf/dnf.conf~:
 
