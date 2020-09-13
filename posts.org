@@ -1,17 +1,31 @@
 #+HUGO_BASE_DIR: ./
-* Apagando mensagens do Discord com Python :python:discord:bot:
+* Notas @notas
+** Diminuindo a lentidão do dnf :fedora:dnf:linux:
+:PROPERTIES:
+:export_file_name: lentidao-dnf
+:export_date: 2020-09-13
+:END:
+
+Uma das primeiras coisas que percebemos ao migrarmos de gerenciadores de pacotes como o ~apk~ ou o ~pacman~ para o ~dnf~ é sua lentidão. Isso se deve principalmente pelo fato dele atualizar seu cache toda vez que realizamos alguma ação com ele, enquanto o ~apt~, por exemplo, possui um comando dedicado a isso.
+
+Podemos acelerar um pouco as coisas ao adicionar as seguintes flags ao arquivo ~/etc/dnf/dnf.conf~:
+- ~max_parallel_downloads=10~
+- ~fastestmirror=1~
+
+* Posts @posts
+** Apagando mensagens do Discord com Python :python:discord:bot:
 :PROPERTIES:
 :EXPORT_FILE_NAME: deletando-mensagens-python
 :EXPORT_DATE: 2020-08-01
 :END:
 
-Não sei vocês, mas eu costumo apagar minhas mensagens com frequência. Sempre sinto certa ansiedade por ter mensagens demais em locais demais e então decidi criar um bot que automatize parte dessa tarefa.
+Não sei vocês, mas eu costumo apagar minhas mensagens com frequência.   Sempre sinto certa ansiedade por ter mensagens demais em locais demais e então decidi criar um bot que automatize parte dessa tarefa.
 
-** Requisitos
+*** Requisitos
 - ~Python 3.4 ou superior~
   - ~requests~
 
-** A Estratégia
+*** A Estratégia
 Minha primeira estratégia foi iterar as mensagens de cada canal que participo até chegar na primeira mensagem enviada, assim eu teria certeza que passei por todas minhas mensagens. Não preciso nem dizer que levaria dias para vasculhar servidores muito movimentados. Sendo assim, arrumei outra estratégia.
 
 Parei um pouco para pensar e percebi que a forma mais fácil de pegar mensagens com parâmetros específicos é (pasmem!) utilizando a ferramenta de busca do próprio Discord! Bastou fazer uma busca com meu próprio usuário para descobrir nossa estratégia de busca. Anotemos como é nosso endpoint de busca:
@@ -50,14 +64,14 @@ O retorno da API é mais ou menos assim:
   - *id*: o id da mensagem;
   - *type*: determina o [[https://discord.com/developers/docs/resources/channel#message-object-message-types][tipo da mensagem]].
 
-** Reunindo o necessário
+*** Reunindo o necessário
  Agora que sabemos como realizar a busca, precisamos suprir as informações necessárias para tal. O primeiro passo é ler a [[https://discord.com/developers/docs/intro][documentação]] e tentar entender onde requisitar tais informações. Lá podemos ver que precisaremos de três endpoints além da busca.
 
  - ~GET /api/users/@me~: informações sobre o usuário;
  - ~GET /api/users/@me/guids~: informações sobre as guilds que o usuário faz parte;
  - ~DELETE /api/channels/{channel_id}/messages/{message_id}~: realiza a remoção de uma mensagem. Note que as informações necessárias já estão contidas no retorno da busca.
 
-** Mostre-me o código
+*** Mostre-me o código
 
 Nosso primeiro passo será criar uma sessão do requests. Dessa forma poderemos persistir o cabeçalho contendo nosso token:
 
@@ -342,7 +356,7 @@ asyncio.run(main())
 
 Você pode conferir o código com algumas adições no [[https://github.com/ratsclub/nuke][Github]].
 
-* Setup declarativo de e-mail utilizando Nix e notmuch :emacs:nix:email:
+** Setup declarativo de e-mail utilizando Nix e notmuch :emacs:nix:email:
 :PROPERTIES:
 :EXPORT_FILE_NAME: setup-declarativo-email-nix
 :EXPORT_DATE: 2020-08-06
@@ -352,12 +366,12 @@ Sempre utilizei o [[https://www.thunderbird.net/en-US/][Thunderbird]] como clien
 
 Aqui entra o [[https://notmuchmail.org/][notmuch]], de acordo com seu próprio site, é um sistema de busca e tags globais para e-mails. Ele é encarregado por fazer buscas rápidas (o site garante que milhões de mensagens /não são muito/) e manter sua caixa de entrada vazia através de seu sistema de tags.
 
-** Requisitos
+*** Requisitos
 - [[https://nixos.org/learn.html][Nix]] (com [[https://github.com/rycee/home-manager][Home Manager]]) como gerenciador de pacotes
 - [[https://isync.sourceforge.io/mbsync.html][mbsync]] para a sincronização dos e-mails via IMAP
 - [[https://marlam.de/msmtp/][msmtp]] para enviar os e-mails
 
-** Nix e Home Manager
+*** Nix e Home Manager
 
 /Nix/ é a linguagem funcional utilizada pelo gerenciador de pacotes de mesmo nome. Através dela que declaramos pacotes, serviços e módulos que serão instalados em nosso sistema. Contudo, esse guia fora escrito em um sistema Ubuntu, logo não é preciso ser usuário de [[https://nixos.org/][NixOS]] (a distro oficial do Nix) para seguí-lo.
 
@@ -385,9 +399,9 @@ max-cache-ttl-ssh 34560001
 pinentry-program /nix/store/y355ly245pa6ps4813rrqc00rm4ki335-pinentry-1.1.0-gtk2/bin/pinentry
 #+END_SRC
 
-** Configurando o e-mail
+*** Configurando o e-mail
 
-*** Programas e serviços
+**** Programas e serviços
 
 No decorrer da configuração será utilizado um arquivo único chamado ~email.nix~. Comecemos com a declaração dos programas e serviços necessários.
 
@@ -411,7 +425,7 @@ A sintaxe é bem direta, todavia devo ressaltar alguns pontos.
 
 Primeiramente, a expressão ~programs.notmuch.hooks.preNew = "mbsync --all"~ faz o quê? Isto diz para o /notmuch/ buscar os e-mails diretamente do /mbsync/ ao rodarmos o comando ~notmuch new~. Logo após declaramos ~services.mbsync.frequency = "*:0/5"~ e isso nada mais é do que a frequência com que o ~mbsync~ será rodado. A notação ~*:0/5~ faz parte do [[https://www.freedesktop.org/software/systemd/man/systemd.time.html#Calendar%20Events][Calendar Events]] do systemd.
 
-*** Contas
+**** Contas
 
 Chegou a hora de configurar nossas contas de e-mail. A expressão utilizada para isso é ~accounts.email.accounts."name".property~, dessa forma podemos configurar diversas contas de e-mail diferentes. Bom, mãos à obra!
 
@@ -460,7 +474,7 @@ Definindo o valor de ambos como ~both~ fará com que modificações sejam replic
 
 Nos resta a propriedade ~passwordCommand~, ela é responsável por prover a senha de seu e-mail. Eu utilzo o [[https://www.passwordstore.org/][pass]] para isso, mas você também pode utilizar o ~gnupg~, ~keepassxc~, entre outros. Basta passar um comando shell à esta propriedade.
 
-** Conclusão
+*** Conclusão
 
 Configurar uma conta de e-mail utilizando o /Nix/ foi bem mais fácil do que eu esperava. Isso claro, graças ao /Home Manager/. Sem ele provavelmente teríamos muito mais trabalho.
 
@@ -527,3 +541,26 @@ O arquivo de configuração final ficou assim:
   };
 }
 #+END_SRC
+
+** Como configuro o $GOPATH? :go:
+:PROPERTIES:
+:EXPORT_FILE_NAME: desenvolvendo-go-2020
+:EXPORT_DATE: 2020-09-13
+:END:
+
+Resposta curta: você não precisa.
+
+Há alguns dias um [[https://github.com/d4sein][colega]] meu me fez a seguinte pergunta: "Quero rodar Go em um lugar diferente do $HOME, é só mudar o $GOPATH?". Este tipo de pergunta é bem recorrente quando se trata de Go, mas qual a razão?
+
+*** A raiz do problema
+Em agosto de 2018 [[https://golang.org][Go]] introduziu o suporte a módulos em sua versão [[https://golang.org/doc/go1.11#modules][1.11]]. Desde então não há a necessidade de colocar seus projetos dentro do diretório ~$GOPATH/src~. Entretanto, em 2018 já havia quase uma década de conteúdos publicados na internet sobre Go... e esses incluem artigos que não fazem uso de módulos.
+
+É enorme a chance de um novato procurar algum conteúdo e acabar caindo em um guia que faz uso do destemido ~$GOPATH~.
+
+*** Configuração pós-módulos
+Primeiramente você pode esquecer sobre a variável ~$GOROOT~, essa variável só é necessária caso você queira implementar algo diretamente na linguagem ou sua /standard library/.
+
+Agora a variável ~$GOPATH~ serve para dizer ao Go onde ele deve salvar boa parte de seus arquivos. Entre os arquivos está o diretório ~$GOPATH/bin~, ele é responsável por armazenar os programas baixados através dos comandos ~go get~ e ~go install~. Adicione este diretório ao seu ~$PATH~ para ter acesso imediato aos programas baixados.
+
+*** Desenvolvendo com módulos
+Antes de mais nada, *não utilize* o diretório ~$GOPATH/src~ para seus projetos! Agora você está em seu próprio diretório, basta rodar o comando ~go mod init nome-do-seu-repositório-git~ [fn:: Um nome como github.com/username/reponame] para iniciá-lo.

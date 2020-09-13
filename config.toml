@@ -1,7 +1,7 @@
 baseURL = "https://blog.freire.dev.br/"
 ltanguageCode = "pt-br"
 defaultContentLanguage = "pt-br"
-title = "ratsclub"
+title = "freire"
 theme = "terminal"
 paginate = 5
 
@@ -27,7 +27,7 @@ paginate = 5
 [languages]
   [languages.pt-br]
     languageName = "Portugues (Brasil)"
-    title = "ratsclub"
+    title = "freire"
     subtitle = ""
     owner = ""
     keywords = ""
@@ -39,7 +39,7 @@ paginate = 5
     missingBackButtonLabel = "voltar para a home"
 
     [languages.pt-br.params.logo]
-      logoText = "ratsclub"
+      logoText = "freire"
       logoHomeLink = "/"
 
     [languages.pt-br.menu]
