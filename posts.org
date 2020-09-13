@@ -9,8 +9,11 @@
 Uma das primeiras coisas que percebemos ao migrarmos de gerenciadores de pacotes como o ~apk~ ou o ~pacman~ para o ~dnf~ é sua lentidão. Isso se deve principalmente pelo fato dele atualizar seu cache toda vez que realizamos alguma ação com ele, enquanto o ~apt~, por exemplo, possui um comando dedicado a isso.
 
 Podemos acelerar um pouco as coisas ao adicionar as seguintes flags ao arquivo ~/etc/dnf/dnf.conf~:
-- ~max_parallel_downloads=10~
-- ~fastestmirror=1~
+
+#+begin_src config
+max_parallel_downloads=10
+fastestmirror=1
+#+end_src
 
 * Posts @posts
 ** apagando mensagens do Discord com Python :python:discord:bot:
@@ -548,12 +551,10 @@ O arquivo de configuração final ficou assim:
 :EXPORT_DATE: 2020-09-13
 :END:
 
-Resposta curta: você não precisa.
-
 Há alguns dias um [[https://github.com/d4sein][colega]] meu me fez a seguinte pergunta: "Quero rodar Go em um lugar diferente do $HOME, é só mudar o $GOPATH?". Este tipo de pergunta é bem recorrente quando se trata de Go, mas qual a razão?
 
 *** A raiz do problema
-Em agosto de 2018 [[https://golang.org][Go]] introduziu o suporte a módulos em sua versão [[https://golang.org/doc/go1.11#modules][1.11]]. Desde então não há a necessidade de colocar seus projetos dentro do diretório ~$GOPATH/src~. Entretanto, em 2018 já havia quase uma década de conteúdos publicados na internet sobre Go... e esses incluem artigos que não fazem uso de módulos.
+Em agosto de 2018 [[https://golang.org][Go]] introduziu o suporte a módulos em sua versão [[https://golang.org/doc/go1.11#modules][1.11]]. Desde então não há a necessidade de colocar seus projetos dentro do diretório ~$GOPATH/src~. Entretanto, em 2018 já havia quase uma década de conteúdos publicados na internet sobre Go... e esses incluem muitos artigos que não fazem o uso de módulos.
 
 É enorme a chance de um novato procurar algum conteúdo e acabar caindo em um guia que faz uso do destemido ~$GOPATH~.
 
