@@ -549,6 +549,7 @@ O arquivo de configuração final ficou assim:
 
 ** desenvolvimento Go e $GOPATH em 2020 :go:
 :PROPERTIES:
+:EXPORT_FILE_NAME: desenvolvimento-go-2020
 :EXPORT_DATE: 2020-09-13
 :END:
 
