@@ -566,4 +566,4 @@ Primeiramente você pode esquecer sobre a variável ~$GOROOT~, essa variável s�
 Agora a variável ~$GOPATH~ serve para dizer ao Go onde ele deve salvar boa parte de seus arquivos. Entre os arquivos está o diretório ~$GOPATH/bin~, ele é responsável por armazenar os programas baixados através dos comandos ~go get~ e ~go install~. Adicione este diretório ao seu ~$PATH~ para ter acesso imediato aos programas baixados.
 
 *** Desenvolvendo com módulos
-Antes de mais nada, *não utilize* o diretório ~$GOPATH/src~ para seus projetos! Agora você está em seu próprio diretório, basta rodar o comando ~go mod init nome-do-seu-repositório-git~ [fn:: Um nome como github.com/username/reponame] para iniciá-lo.
+Antes de mais nada, *não utilize* o diretório ~$GOPATH/src~ para seus projetos! Agora que você está em seu próprio diretório, basta rodar o comando ~go mod init nome-do-seu-repositório-git~ [fn:: Um nome como github.com/username/reponame] para iniciá-lo.
