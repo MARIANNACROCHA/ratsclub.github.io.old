@@ -51,3 +51,8 @@ paginate = 5
         identifier = "posts"
         name = "posts"
         url = "/posts"
+        
+      [[languages.pt-br.menu.main]]
+        identifier = "rss"
+        name = "rss"
+        url = "/index.xml"
